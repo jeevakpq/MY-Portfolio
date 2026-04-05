@@ -96,10 +96,10 @@
                             class="w-full p-3 bg-slate-50 border rounded-lg mb-2 text-sm outline-none">
 
                         <label class="block text-[10px] font-bold text-blue-400 mb-2 ml-1 uppercase tracking-widest">
-                            <i class="fas fa-cloud-upload-alt mr-2"></i>Upload Certificate (PDF/JPG)
+                            <i class="fas fa-cloud-upload-alt mr-2"></i> Certificate Image (Google Drive Link)
                         </label>
-                        <input id="cert-file" type="file" accept=".pdf,.png,.jpg,.jpeg" class="w-full">
-
+                        <input id="cert-link" type="text" placeholder="Paste Google Drive link"
+                            class="w-full border p-2 rounded-lg" />
                         <button onclick="addCert()"
                             class="w-full bg-slate-900 text-white py-3 rounded-xl font-bold text-xs uppercase hover:bg-blue-600 transition">
                             Upload Certificate

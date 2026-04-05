@@ -632,81 +632,44 @@ async function addCert() {
     const title = document.getElementById('cert-title').value.trim();
     const issuer = document.getElementById('cert-issuer').value.trim();
     const date = document.getElementById('cert-date').value.trim();
-    const fileInput = document.getElementById('cert-file');
-    const file = fileInput.files[0];
+    const link = document.getElementById('cert-link').value.trim();
 
-    if (!title || !issuer || !date || !file) {
-        alert("⚠️ Please fill all certificate details and choose a file.");
+    if (!title || !issuer || !date || !link) {
+        alert("⚠️ Fill all fields including certificate link.");
         return;
     }
 
-    try {
-        const fileData = await new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = e => resolve(e.target.result);
-            reader.onerror = reject;
-            reader.readAsDataURL(file);
-        });
+    const certData = {
+        title,
+        issuer,
+        date,
+        link
+    };
 
-        const certData = {
-            title,
-            issuer,
-            date,
-            fileName: file.name,
-            fileType: file.type,
-            fileData: fileData
-        };
+    certs.push(certData);
 
-        certs.push(certData);
+    await savePortfolioData();
+    renderAll();
 
-        await savePortfolioData();
-        renderAll();
+    // clear inputs
+    document.getElementById('cert-title').value = "";
+    document.getElementById('cert-issuer').value = "";
+    document.getElementById('cert-date').value = "";
+    document.getElementById('cert-link').value = "";
 
-        document.getElementById('cert-title').value = "";
-        document.getElementById('cert-issuer').value = "";
-        document.getElementById('cert-date').value = "";
-        fileInput.value = "";
-
-        alert("✅ Certificate added successfully!");
-    } catch (error) {
-        console.error("Certificate save failed:", error);
-        alert("Certificate upload failed.");
-    }
+    alert("✅ Certificate added!");
 }
 // --- 3. VIEW & DOWNLOAD LOGIC ---
 function viewCertificate(index) {
     const c = certs[index];
 
-    if (!c || !c.fileData) {
-        alert("Certificate file not found.");
+    if (!c || !c.link) {
+        alert("Certificate link not found.");
         return;
     }
 
-    try {
-        const arr = c.fileData.split(',');
-        const mimeMatch = arr[0].match(/:(.*?);/);
-        const mime = mimeMatch ? mimeMatch[1] : 'application/pdf';
-        const bstr = atob(arr[1]);
-        let n = bstr.length;
-        const u8arr = new Uint8Array(n);
-
-        while (n--) {
-            u8arr[n] = bstr.charCodeAt(n);
-        }
-
-        const blob = new Blob([u8arr], { type: mime });
-        const blobUrl = URL.createObjectURL(blob);
-
-        window.open(blobUrl, "_blank");
-
-        // Optional cleanup after some time
-        setTimeout(() => URL.revokeObjectURL(blobUrl), 60000);
-    } catch (error) {
-        console.error("Error opening certificate:", error);
-        alert("Unable to open certificate.");
-    }
+    window.open(c.link, "_blank");
 }
-
 
 
 async function deleteCert(index) {
