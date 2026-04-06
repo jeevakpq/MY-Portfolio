@@ -42,7 +42,6 @@
             }
         }
 
-        // UPDATED: This function now handles the TEXT injection too
         function showHireStep(step, type = 'success') {
             const steps = ['step-question', 'step-yes', 'step-no', 'hire-success'];
             steps.forEach(id => {
@@ -55,7 +54,6 @@
             if (target) {
                 target.classList.remove('hidden');
 
-                // If we are showing the success screen, force the text in right now
                 if (step === 'success') {
                     const icon = document.getElementById('success-icon');
                     const title = document.getElementById('success-title');
@@ -75,20 +73,18 @@
         }
 
         document.addEventListener('DOMContentLoaded', function () {
-            // YES FORM
-            // --- 1. HANDLE YES FORM ---
             const hireForm = document.getElementById('form-yes');
             if (hireForm) {
                 hireForm.addEventListener('submit', function (e) {
                     e.preventDefault();
+
                     const btnText = document.getElementById('yes-btn-text');
                     if (btnText) btnText.textContent = "Sending...";
 
-                    // Collect all data including LinkedIn for the YES form
                     const params = {
                         from_name: document.getElementById('yes-name').value,
                         from_email: document.getElementById('yes-email').value,
-                        linkedin_url: document.getElementById('yes-linkedin').value || "Not Provided", // FIXED: Added this
+                        linkedin_url: document.getElementById('yes-linkedin').value || "Not Provided",
                         message: document.getElementById('yes-msg').value,
                         to_name: "Jeevanandham"
                     };
@@ -97,20 +93,21 @@
                         .then(() => {
                             showHireStep('success', 'success');
                             hireForm.reset();
-                        }, (error) => {
+                            if (btnText) btnText.textContent = "Send Inquiry";
+                        })
+                        .catch((error) => {
+                            console.error("Hire Form Error:", error);
                             alert("Email failed.");
                             if (btnText) btnText.textContent = "Send Inquiry";
                         });
                 });
             }
 
-            // --- 2. HANDLE NO FORM ---
             const noForm = document.getElementById('form-no');
             if (noForm) {
                 noForm.addEventListener('submit', function (e) {
                     e.preventDefault();
 
-                    // Collect feedback data using the 'no-' IDs
                     const templateParams = {
                         from_name: document.getElementById('no-name').value || "Anonymous",
                         from_email: "Feedback Form",
@@ -123,29 +120,14 @@
                         .then(() => {
                             showHireStep('success', 'feedback');
                             noForm.reset();
-                        }, (error) => {
+                        })
+                        .catch((error) => {
                             console.error("Feedback Error:", error);
                             showHireStep('success', 'feedback');
                         });
                 });
             }
-            // 2. SEND the email to your Service/Template
-            emailjs.send('service_3zvjvmn', 'template_8sic5zd', feedbackParams)
-                .then(() => {
-                    // 3. Show the success screen only AFTER it sends
-                    showHireStep('success', 'feedback');
-                    noForm.reset();
-                }, (error) => {
-                    console.error("Feedback Error:", error);
-                    // Still show success to the user so they don't get stuck, 
-                    // but log the error for you to see.
-                    showHireStep('success', 'feedback');
-                });
         });
-
-
-
-
     </script>
 </head>
 
@@ -273,8 +255,7 @@
                     <span class="text-slate-400 font-bold uppercase tracking-widest text-sm">Quick Links</span>
 
                     <div class="flex items-center gap-6">
-                        <a href="https://mail.google.com/mail/?view=cm&fs=1&to=jeevanandham1072@gmail.com"
-                            target="_blank" class="social-icon-box group">
+                        <a href="#" onclick="openEmail()" class="social-icon-box group">
                             <svg class="w-7 h-7 fill-slate-400 group-hover:fill-emerald-400 transition-all"
                                 viewBox="0 0 24 24">
                                 <path
@@ -301,6 +282,10 @@
                             </svg>
 
                         </a>
+
+                        <a href="#" onclick="openWhatsApp()" class="social-icon-box group">
+                            <i class="fab fa-whatsapp text-2xl"></i>
+                        </a>
                     </div>
                 </div>
             </div>
@@ -326,40 +311,7 @@
                     About Me
                 </h2>
 
-                <div class="about-text space-y-6">
-                    <p>
-                        I am a data professional with <span class="text-highlight">3+ years of experience</span> at
-                        <span class="text-highlight">Amazon</span>, specializing in large-scale retail datasets, data
-                        validation, and operational analytics. I leverage <span class="skill-pill">Python</span>, <span
-                            class="skill-pill">SQL</span>, and <span class="skill-pill">Machine Learning</span> to build
-                        data-driven solutions.
-                    </p>
-
-                    <p>
-                        I have hands-on experience in <span class="text-highlight">Exploratory Data Analysis
-                            (EDA)</span>, feature engineering, and model development using <span
-                            class="skill-pill">Scikit-learn</span>. I design analytics pipelines and KPI dashboards that
-                        directly support business decision-making.
-                    </p>
-
-                    <p>
-                        At <span class="text-highlight">Amazon</span>, I processed <span class="metric-pill">50K+
-                            records monthly</span>, improved <span class="metric-pill">data accuracy by 30%</span>, and
-                        <span class="metric-pill">reduced reporting time by 35%</span> through advanced automation and
-                        dashboard development.
-                    </p>
-
-                    <p>
-                        I also specialize in building end-to-end machine learning systems, including model deployment
-                        via <span class="skill-pill tool-pill">FastAPI</span> and experiment tracking with <span
-                            class="skill-pill tool-pill">MLflow</span>.
-                    </p>
-
-                    <p class="text-xl font-extrabold text-slate-900 pt-6 border-t border-slate-100">
-                        Currently seeking opportunities as an <span class="text-blue-600">AI/ML Engineer</span> or <span
-                            class="text-blue-600">Data Scientist</span>.
-                    </p>
-                </div>
+                <div id="about-content" class="about-text space-y-6"></div>
             </div>
         </div>
 
@@ -461,8 +413,7 @@
             <p class="text-sky-400 font-medium mb-12">Currently open to Data Science and ML Engineering roles.</p>
 
             <div class="grid md:grid-cols-2 gap-8 mb-16">
-                <a href="https://mail.google.com/mail/?view=cm&fs=1&to=jeevanandham1072@gmail.com" target="_blank"
-                    class="contact-card group">
+                <a href="#" onclick="openEmail()" class="contact-card group">
                     <i class="fas fa-envelope contact-icon"></i>
                     <h4 class="contact-label">Email Me</h4>
                     <p class="contact-value">jeevanandham1072@gmail.com</p>

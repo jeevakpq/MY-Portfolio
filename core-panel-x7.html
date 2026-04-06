@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Admin Panel</title>
+
+    <!-- Tailwind CSS (since your code uses Tailwind classes) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Font Awesome (for icons like upload icon) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <!-- Optional: your custom CSS -->
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="assets\fav-icon.jpg" type="image/x-icon">
+</head>
+
+<body class="bg-[#020617] text-white">
+
+
+
+    <!-- 🔐 Admin Login Overlay -->
+    <div id="admin-login" class="fixed inset-0 bg-black flex items-center justify-center z-50">
+
+        <div class="bg-white p-8 rounded-2xl shadow-xl w-[300px] text-center">
+            <h2 class="text-xl font-bold mb-4">Admin Login</h2>
+
+            <div class="relative">
+                <input id="admin-password" type="password" placeholder="Enter Password"
+                    class="w-full border p-2 rounded-lg pr-10 text-black bg-white" />
+
+                <!-- 👁 Toggle button -->
+                <span onclick="togglePassword()" class="absolute right-3 top-2 cursor-pointer text-black">👁</span>
+            </div>
+
+            <button onclick="checkPassword()" class="mt-4 w-full bg-blue-600 text-white p-2 rounded-lg">
+                Login
+            </button>
+        </div>
+
+    </div>
+    <button onclick="logout()" class="logout-glass-btn">
+        <i class="fas fa-sign-out-alt mr-2"></i> Logout
+    </button>
+
+
+    <!-- <script>
+        const ADMIN_PASSWORD = "Jeeva@77088";
+        
+        if (sessionStorage.getItem("isAdmin") !== "true") {
+            const entered = prompt("Enter Admin Password:");
+        
+            if (entered === ADMIN_PASSWORD) {
+                sessionStorage.setItem("isAdmin", "true");
+            } else {
+                alert("Access Denied ❌");
+                window.location.href = "index.html";
+            }
+        }
+        </script> -->
+
+
+
+
+    <section id="admin" class="py-20 bg-slate-100 border-t-4 border-blue-600">
+        <div class="max-w-4xl mx-auto px-6">
+            <h2 class="text-2xl font-bold mb-8 text-center text-blue-600">Admin: Manage Content</h2>
+            <div class="grid md:grid-cols-2 gap-8">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 mb-6">
+                    <h3 class="font-bold mb-4 text-xs uppercase text-slate-400">Manage Skills & Categories</h3>
+
+                    <input id="skill-category" type="text" placeholder="Category (e.g. Programming)"
+                        class="w-full p-3 bg-slate-50 border rounded-lg mb-2 text-sm outline-none font-bold">
+
+                    <input id="skill-name" type="text"
+                        placeholder="Skill Name (e.g. Python) - Leave blank to only rename category"
+                        class="w-full p-3 bg-slate-50 border rounded-lg mb-4 text-sm outline-none">
+
+                    <input type="hidden" id="old-category-name" value="">
+
+                    <button onclick="addCategorizedSkill()" id="skill-btn"
+                        class="w-full bg-slate-900 text-white py-3 rounded-xl font-bold text-xs uppercase hover:bg-blue-600 transition">
+                        Save Skill / Category
+                    </button>
+                </div>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 mb-6">
+                    <h3 class="font-bold mb-4 text-xs uppercase text-slate-400">Add Certificate</h3>
+                    <input id="cert-title" type="text" placeholder="Certificate Name"
+                        class="w-full p-3 bg-slate-50 border rounded-lg mb-2 text-sm outline-none">
+                    <input id="cert-issuer" type="text" placeholder="Issuing Organization"
+                        class="w-full p-3 bg-slate-50 border rounded-lg mb-2 text-sm outline-none">
+                    <input id="cert-date" type="text" placeholder="Date (e.g. March 2026)"
+                        class="w-full p-3 bg-slate-50 border rounded-lg mb-2 text-sm outline-none">
+
+                    <label class="block text-[10px] font-bold text-blue-400 mb-2 ml-1 uppercase tracking-widest">
+                        <i class="fas fa-cloud-upload-alt mr-2"></i> Certificate Image (Google Drive Link)
+                    </label>
+                    <input id="cert-link" type="text" placeholder="Paste Google Drive link"
+                        class="w-full border p-2 rounded-lg" />
+                    <button onclick="addCert()"
+                        class="w-full bg-slate-900 text-white py-3 rounded-xl font-bold text-xs uppercase hover:bg-blue-600 transition">
+                        Upload Certificate
+                    </button>
+                </div>
+
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 mb-6">
+                    <h3 class="font-bold mb-4 text-xs uppercase text-slate-400">Update Highlights</h3>
+                    <div class="space-y-3">
+                        <input id="edit-exp" type="text" placeholder="Experience (e.g. 3+ Years)"
+                            class="w-full p-3 bg-slate-50 border rounded-lg text-sm outline-none">
+                        <input id="edit-domain" type="text" placeholder="Domain"
+                            class="w-full p-3 bg-slate-50 border rounded-lg text-sm outline-none">
+                        <input id="edit-focus" type="text" placeholder="Focus"
+                            class="w-full p-3 bg-slate-50 border rounded-lg text-sm outline-none">
+                        <button onclick="saveCareerHighlights()"
+                            class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold text-xs uppercase hover:bg-slate-900 transition">
+                            Update Dashboard
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="bg-white p-8 rounded-2xl shadow-sm mb-10 border border-blue-100">
+            <h3 id="proj-form-title"
+                class="font-bold mb-6 text-slate-800 uppercase tracking-widest text-sm text-center">
+                Project Management
+            </h3>
+
+            <input type="hidden" id="edit-index" value="-1">
+
+            <div class="grid md:grid-cols-2 gap-4">
+                <input id="proj-title" type="text" placeholder="Project Title"
+                    class="p-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none">
+
+                <select id="proj-type"
+                    class="w-full p-3 bg-slate-50 border rounded-lg mb-2 text-sm outline-none font-bold">
+                    <option value="All">All Categories</option>
+                    <option value="AI/ML">AI/ML</option>
+                    <option value="Data Scientist">Data Scientist</option>
+                    <option value="SQL">SQL</option>
+                    <option value="Data Analyst">Data Analyst</option>
+                </select>
+
+                <input id="proj-tech" type="text" placeholder="Tech Stack (e.g. Python, XGBoost)"
+                    class="p-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none md:col-span-2">
+
+                <div class="md:col-span-2">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase mb-2 block">Project Screenshots
+                        (Select
+                        Multiple)</label>
+                    <input id="proj-imgs" type="file" accept="image/*" multiple
+                        class="w-full p-3 bg-slate-50 border border-dashed rounded-2xl text-xs">
+                </div>
+
+                <textarea id="proj-desc" placeholder="Brief Description"
+                    class="p-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none md:col-span-2 h-24"></textarea>
+
+                <button id="save-proj-btn" onclick="saveProject()"
+                    class="bg-blue-600 text-white font-bold py-4 rounded-2xl hover:bg-slate-900 transition md:col-span-2">
+                    Save Project with Screenshots
+                </button>
+            </div>
+        </div>
+    </section>
+    <div class="about-editor-panel">
+        <h3 class="about-editor-title">Edit About Section</h3>
+    
+        <div class="about-toolbar-top">
+            <div class="font-control-card">
+                <span class="font-control-label">Font Size</span>
+                <div class="font-control-actions">
+                    <button type="button" onclick="changeFontSize(-1)" class="font-size-btn">A-</button>
+                    <button type="button" onclick="changeFontSize(1)" class="font-size-btn">A+</button>
+                    <span id="font-size-label" class="font-size-value">16px</span>
+                </div>
+            </div>
+        </div>
+
+    <div class="" max-w-6xl mx-auto px-6 grid md:grid-cols-2 gap-16 items-center"">
+        <div class="about-editor-panel">
+            
+        
+            <div class="about-toolbar">
+                <button type="button" onclick="formatAbout('bold')" class="toolbar-btn toolbar-dark">
+                    Bold White
+                </button>
+        
+                <button type="button" onclick="formatAbout('blue')" class="toolbar-btn toolbar-blue">
+                    Blue Highlight
+                </button>
+        
+                <button type="button" onclick="formatAbout('green')" class="toolbar-btn toolbar-green">
+                    Green Highlight
+                </button>
+        
+                <!-- <button type="button" onclick="removeAboutFormatting()" class="toolbar-btn toolbar-amber">
+                    Remove Highlight
+                </button> -->
+        
+                <button type="button" onclick="insertAboutParagraph()" class="toolbar-btn toolbar-slate">
+                    Add Paragraph
+                </button>
+        
+                <!-- <button type="button" onclick="cleanAboutEditor()" class="toolbar-btn toolbar-rose">
+                    Clean Paragraphs
+                </button> -->
+            </div>
+        
+            <div class="about-editor-wrap">
+                <div id="about-editor" contenteditable="true"></div>
+            </div>
+        
+            <button onclick="saveAboutContent()" class="about-save-btn">
+                Save About Section
+            </button>
+        </div>
+    </div>
+
+    <section id="skills" class="py-24">
+        <div class="max-w-6xl mx-auto px-6">
+            <h3 class="text-3xl font-black mb-10 uppercase italic text-white">Live Preview & Management</h3>
+            <h2 class="text-4xl font-black uppercase tracking-tighter mb-1 text-white">Skills</h2>
+            <div id="skills-container-duplicate" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-8">
+            </div>
+        </div>
+    </section>
+    <section id="projects" class="py-20">
+        <div class="max-w-6xl mx-auto px-6">
+            <div class="flex flex-col md:flex-row justify-between items-end mb-10">
+                <div class="mb-4 md:mb-0">
+                    <h3 class="text-3xl font-black mb-10 uppercase italic text-white">Live Preview & Management</h3>
+                    <h2 class="text-4xl font-black uppercase tracking-tighter mb-1 text-white">Projects</h2>
+                    <p class="text-sky-400 text-[11px] font-bold uppercase tracking-[0.2em]">
+                        Transforming Data into Intelligent Services
+                    </p>
+                </div>
+
+                <div class="flex flex-wrap gap-3">
+                    <button onclick="renderProjects('All')" class="filter-btn active">All</button>
+                    <button onclick="renderProjects('AI/ML')" class="filter-btn">AI/ML</button>
+                    <button onclick="renderProjects('Data Scientist')" class="filter-btn">Data Scientist</button>
+                    <button onclick="renderProjects('SQL')" class="filter-btn">SQL</button>
+                </div>
+            </div>
+
+            <div id="projects-container-duplicate" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            </div>
+        </div>
+    </section>
+    <section id="certificates" class="py-24">
+        <div class="max-w-6xl mx-auto px-6">
+            <h3 class="text-3xl font-black mb-10 uppercase italic text-white">Live Preview & Management</h3>
+            <h2 class="text-3xl font-black mb-10 uppercase italic text-right text-white">Certifications</h2>
+            <div id="cert-container-duplicate" class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            </div>
+        </div>
+    </section>
+
+    <!-- Your JS file -->
+    <script type="module" src="script.js"></script>
+
+
+</body>
+
+</html>

@@ -37,7 +37,7 @@ import {
     uploadBytes,
     getDownloadURL,
     deleteObject
-  } from "./firebase-config.js";
+} from "./firebase-config.js";
 
 
 
@@ -52,6 +52,43 @@ let careerData = {
     domain: "Data & Process Associate (Retail Analytics)",
     focus: "AI/ML Engineering, Data Science"
 };
+let aboutFontSize = 16;
+
+let aboutContent = `
+
+    <p>
+    I am a data professional with <span class="text-highlight">3+ years of experience</span> at
+    <span class="text-highlight">Amazon</span>, specializing in large-scale retail datasets, data
+    validation, and operational analytics. I leverage <span class="skill-pill">Python</span>,
+    <span class="skill-pill">SQL</span>, and <span class="skill-pill">Machine Learning</span> to build
+    data-driven solutions.
+    </p>
+
+    <p>
+    I have hands-on experience in <span class="text-highlight">Exploratory Data Analysis (EDA)</span>,
+    feature engineering, and model development using <span class="skill-pill">Scikit-learn</span>.
+    I design analytics pipelines and KPI dashboards that directly support business decision-making.
+    </p>
+
+    <p>
+    At <span class="text-highlight">Amazon</span>, I processed <span class="metric-pill">50K+ records monthly</span>,
+    improved <span class="metric-pill">data accuracy by 30%</span>, and
+    <span class="metric-pill">reduced reporting time by 35%</span> through advanced automation and dashboard development.
+    </p>
+
+    <p>
+    I also specialize in building end-to-end machine learning systems, including model deployment via
+    <span class="skill-pill tool-pill">FastAPI</span> and experiment tracking with
+    <span class="skill-pill tool-pill">MLflow</span>.
+    </p>
+
+    <p class="about-last-line">
+    Currently seeking opportunities as an <span class="about-role">AI/ML Engineer</span> or
+    <span class="about-role">Data Scientist</span>.
+    </p>
+
+`;
+
 
 async function loadPortfolioData() {
     try {
@@ -65,6 +102,8 @@ async function loadPortfolioData() {
             projects = data.projects || [];
             bookmarks = data.bookmarks || {};
             careerData = data.careerData || careerData;
+            aboutContent = data.aboutContent || aboutContent;
+            aboutFontSize = data.aboutFontSize || aboutFontSize;
         } else {
             console.log("No portfolio data found in Firestore yet.");
         }
@@ -80,7 +119,9 @@ async function savePortfolioData() {
             certs,
             projects,
             bookmarks,
-            careerData
+            careerData,
+            aboutContent,
+            aboutFontSize 
         });
     } catch (error) {
         console.error("Error saving portfolio data:", error);
@@ -240,7 +281,9 @@ function renderAll() {
     // localStorage.setItem('myCareerData', JSON.stringify(careerData));
 
     // Ensure Dashboard reflects current bookmarks
+    renderAboutContent();
     updateLiveDashboard();
+    applyFontSize();
 }
 // 3. ACTION FUNCTIONS
 // --- Updated ACTION FUNCTIONS ---
@@ -590,6 +633,175 @@ function initProjectSliders(filteredProjects, isAdminView) {
         }, 2500);
     });
 }
+
+function getAboutEditorSelectionRange() {
+    const editor = document.getElementById("about-editor");
+    if (!editor) return null;
+
+    const selection = window.getSelection();
+    if (!selection.rangeCount) return null;
+
+    const range = selection.getRangeAt(0);
+
+    if (!editor.contains(range.commonAncestorContainer)) {
+        alert("Please select text inside the About editor.");
+        return null;
+    }
+
+    return range;
+}
+
+function wrapSelectionWithClass(className) {
+    const range = getAboutEditorSelectionRange();
+    if (!range) return;
+
+    const selectedText = range.toString().trim();
+    if (!selectedText) {
+        alert("Please select text first.");
+        return;
+    }
+
+    const span = document.createElement("span");
+    span.className = className;
+    span.textContent = selectedText;
+
+    range.deleteContents();
+    range.insertNode(span);
+
+    window.getSelection().removeAllRanges();
+}
+
+function formatAbout(type) {
+    if (type === "bold") {
+        wrapSelectionWithClass("text-highlight");
+    } else if (type === "blue") {
+        wrapSelectionWithClass("skill-pill");
+    } else if (type === "green") {
+        wrapSelectionWithClass("metric-pill");
+    }
+}
+
+function removeAboutFormatting() {
+    const range = getAboutEditorSelectionRange();
+    if (!range) return;
+
+    const selectedText = range.toString().trim();
+    if (!selectedText) {
+        alert("Please select text first.");
+        return;
+    }
+
+    const textNode = document.createTextNode(selectedText);
+    range.deleteContents();
+    range.insertNode(textNode);
+
+    window.getSelection().removeAllRanges();
+}
+
+function insertAboutParagraph() {
+    const editor = document.getElementById("about-editor");
+    if (!editor) return;
+
+    editor.innerHTML += `<p>New paragraph here...</p>`;
+}
+
+function cleanAboutEditor() {
+    const editor = document.getElementById("about-editor");
+    if (!editor) return;
+
+    let html = editor.innerHTML;
+
+    html = html.replace(/<div>/gi, "<p>");
+    html = html.replace(/<\/div>/gi, "</p>");
+    html = html.replace(/<p><br><\/p>/gi, "");
+    html = html.replace(/&nbsp;/gi, " ");
+
+    editor.innerHTML = html;
+}
+
+function sanitizeAboutHtml(html) {
+    const wrapper = document.createElement("div");
+    wrapper.innerHTML = html;
+
+    const allowedClasses = [
+        "text-highlight",
+        "skill-pill",
+        "metric-pill",
+        "tool-pill",
+        "about-last-line",
+        "about-role",
+        "text-xl",
+        "font-extrabold",
+        "text-slate-900",
+        "pt-6",
+        "border-t",
+        "border-slate-100",
+        "text-blue-600"
+    ];
+
+    const allowedTags = ["P", "SPAN", "BR"];
+
+    function cleanNode(node) {
+        if (node.nodeType === Node.ELEMENT_NODE) {
+            if (!allowedTags.includes(node.tagName)) {
+                const parent = node.parentNode;
+                while (node.firstChild) {
+                    parent.insertBefore(node.firstChild, node);
+                }
+                parent.removeChild(node);
+                return;
+            }
+
+            const currentClasses = (node.className || "").split(/\s+/).filter(Boolean);
+            const filteredClasses = currentClasses.filter(cls => allowedClasses.includes(cls));
+            node.className = filteredClasses.join(" ");
+        }
+
+        Array.from(node.childNodes).forEach(cleanNode);
+    }
+
+    Array.from(wrapper.childNodes).forEach(cleanNode);
+    return wrapper.innerHTML;
+}
+function renderAboutContent() {
+    const aboutBox = document.getElementById("about-content");
+    const aboutEditor = document.getElementById("about-editor");
+
+    if (aboutBox) {
+        aboutBox.innerHTML = aboutContent;
+    }
+
+    if (aboutEditor) {
+        aboutEditor.innerHTML = aboutContent;
+    }
+}
+
+
+function setupAboutEditorBehavior() {
+    const editor = document.getElementById("about-editor");
+    if (!editor) return;
+
+    editor.addEventListener("keydown", function (e) {
+        if (e.key === "Enter") {
+            document.execCommand("formatBlock", false, "p");
+        }
+    });
+}
+
+async function saveAboutContent() {
+    const editor = document.getElementById("about-editor");
+    if (!editor) return;
+
+    cleanAboutEditor();
+    aboutContent = sanitizeAboutHtml(editor.innerHTML.trim());
+
+    await savePortfolioData();
+    renderAboutContent();
+
+    alert("✅ About section updated!");
+}
+
+
 // --- 1. RENDER CERTIFICATES ---
 function renderCerts(isAdminView = false) {
     const containerId = isAdminView ? 'cert-container-duplicate' : 'cert-container';
@@ -680,19 +892,107 @@ async function deleteCert(index) {
     }
 }
 // Start the system
-document.addEventListener('DOMContentLoaded', () => {
-    console.log("DOM Ready. Starting Render...");
+document.addEventListener("DOMContentLoaded", async () => {
+    await loadPortfolioData();
     renderAll();
-});
-// This ensures that as soon as the website opens, the "All" category is rendered.
-document.addEventListener('DOMContentLoaded', () => {
-    renderProjects('All');
+    applyFontSize();
+    updateLiveDashboard();
+
+    const savedSize = localStorage.getItem("aboutFontSize");
+    if (savedSize) {
+        aboutFontSize = parseInt(savedSize, 10);
+    }
+
+    
 });
 
 function logout() {
     sessionStorage.removeItem("isAdmin");
     location.reload();
 }
+
+
+
+window.applyFontSize = function () {
+    const editor = document.getElementById("about-editor");
+    const about = document.getElementById("about-content");
+    const label = document.getElementById("font-size-label");
+
+    if (editor) {
+        editor.style.setProperty("font-size", aboutFontSize + "px", "important");
+
+        editor.querySelectorAll("*").forEach(el => {
+            el.style.setProperty("font-size", "inherit", "important");
+        });
+    }
+
+    if (about) {
+        about.style.setProperty("font-size", aboutFontSize + "px", "important");
+
+        about.querySelectorAll("*").forEach(el => {
+            el.style.setProperty("font-size", "inherit", "important");
+        });
+    }
+
+    if (label) {
+        label.textContent = aboutFontSize + "px";
+    }
+
+    // localStorage.setItem("aboutFontSize", aboutFontSize);
+}
+
+window.changeFontSize = async function (step) {
+    console.log("CLICKED", step); // DEBUG
+    aboutFontSize += step;
+
+    if (aboutFontSize < 14) aboutFontSize = 14;
+    if (aboutFontSize > 24) aboutFontSize = 24;
+
+    applyFontSize();
+}
+
+window.openEmail = function () {
+    const email = "jeevanandham1072@gmail.com";
+
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+    if (isMobile) {
+        // Mobile → open mail app
+        window.location.href = `mailto:${email}`;
+    } else {
+        // Desktop → open Gmail compose
+        window.open(
+            `https://mail.google.com/mail/?view=cm&fs=1&to=${email}&su=Regarding%20Hiring`,
+            "_blank"
+          );
+    }
+};
+
+window.openWhatsApp = function () {
+    const phone = "919360306665"; // 🔥 replace with your number
+    const message = encodeURIComponent(
+        "Hi Jeevanandham, I visited your portfolio and would like to connect with you."
+    );
+
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+    if (isMobile) {
+        // 📱 Mobile → directly open WhatsApp app
+        window.location.href = `https://wa.me/${phone}?text=${message}`;
+    } else {
+        // 💻 Desktop → try app first, fallback to web
+        const appUrl = `whatsapp://send?phone=${phone}&text=${message}`;
+        const webUrl = `https://web.whatsapp.com/send?phone=${phone}&text=${message}`;
+
+        // Try opening app
+        window.location.href = appUrl;
+
+        // If app not available → fallback to web
+        setTimeout(() => {
+            window.open(webUrl, "_blank");
+        }, 800);
+    }
+};
 
 
 window.checkPassword = checkPassword;
@@ -712,6 +1012,11 @@ window.openProjectModal = openProjectModal;
 window.closeProjectModal = closeProjectModal;
 window.deleteCert = deleteCert;
 window.viewCertificate = viewCertificate;
+window.formatAbout = formatAbout;
+window.insertAboutParagraph = insertAboutParagraph;
+window.saveAboutContent = saveAboutContent;
+window.removeAboutFormatting = removeAboutFormatting;
+window.cleanAboutEditor = cleanAboutEditor;
 window.logout = logout;
 
 
